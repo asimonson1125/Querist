@@ -7,8 +7,6 @@ async function deleteMessage(msg, response, wait) {
 }
 
 exports.add = async function (msg, id) {
-    //let acknowledgement = await msg.reply(`Message from ${msg.author.username} read, role id: ${id}.`);
-    //find role and assign to msg.author asynchronously
     let role = await msg.guild.roles.cache.find(r => r.name == id);
     if (role) {
         try {

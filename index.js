@@ -3,9 +3,14 @@ const client = new Client({ intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_
 const auth = require('./auth.json');
 const roleHandler = require('./roleHandler.js');
 const basics = require('./basics.js');
+const editHandler = require('./editHandler');
+const DB = require('./database.js');
+
+DB.DB_init();
 
 client.on('ready', () => {
     console.log(`Logged in as ${client.user.tag}!`);
+    DB.sync();
     client.user.setActivity('your messages with horror', { type: 'WATCHING' });
     client.user.setStatus('idle');
 });
@@ -33,6 +38,10 @@ client.on('messageCreate', msg => {
     }
     if (msg.content.substring(0, 11) == "^impossible") {
         msg.channel.send("​​​​");
+    }
+
+    if (msg.content.substring(0, 9) == "^example ") {
+        editHandler.delCommand(msg);
     }
 });
 
