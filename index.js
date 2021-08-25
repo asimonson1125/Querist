@@ -23,12 +23,12 @@ client.on('messageCreate', msg => {
                 i += 1;
             }
         }
-        const id = parseInt(msg.content.substring(5, i));
+        const id = msg.content.substring(5, i);
         try{
             roleHandler.add(msg, id);
         }
         catch(e){
-            console.log("wut?")
+            console.log("error giving role")
         }
     }
     if (msg.content.substring(0, 11) == "^impossible") {
