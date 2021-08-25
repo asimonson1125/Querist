@@ -2,4 +2,3 @@
 node_modules
 auth.json
 *.sqlite
-editHandler.js
