@@ -7,6 +7,7 @@ const editHandler = require('./editHandler');
 const DB = require('./database.js');
 
 DB.DB_init();
+const bot_owner_id = auth.ownerID;
 
 client.on('ready', () => {
     console.log(`Logged in as ${client.user.tag}!`);
@@ -17,32 +18,45 @@ client.on('ready', () => {
 
 client.on('messageCreate', msg => {
     if (msg.author.bot || !msg.guild) return;
-    if (msg.content.substring(0, 5).toLowerCase() === '^add ') {
-        let space = false;
-        let i = 6;
-        while(!space){
-            if (msg.content[i] == " " || i == msg.content.length){
-                space = true;
-            }
-            else{
-                i += 1;
-            }
-        }
-        const id = msg.content.substring(5, i);
-        try{
-            roleHandler.add(msg, id);
-        }
-        catch(e){
-            console.log("error giving role")
-        }
-    }
     if (msg.content.substring(0, 11) == "^impossible") {
         msg.channel.send("​​​​");
     }
 
-    if (msg.content.substring(0, 9) == "^example ") {
-        editHandler.delCommand(msg);
+
+    if (msg.author.id == bot_owner_id) { //if bot owner is the author
+        if (msg.content.substring(0, 7) == "^track ") {
+            try {
+                DB.addTracker(msg);
+            } catch (e) {
+                msg.reply(`error while adding tracker: ${e}`);
+            }
+        }
+
+        if (msg.content == "^print") {
+            DB.printAll(msg)
+        }
     }
+
+    if (msg.content.substring(0, 5).toLowerCase() === '^add ') {
+        let space = false;
+        let i = 6;
+        while (!space) {
+            if (msg.content[i] == " " || i == msg.content.length) {
+                space = true;
+            }
+            else {
+                i += 1;
+            }
+        }
+        const id = msg.content.substring(5, i);
+        try {
+            roleHandler.add(msg, id);
+        }
+        catch (e) {
+            console.log("error giving role")
+        }
+    }
+    
 });
 
 client.login(auth.token);
