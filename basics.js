@@ -9,3 +9,9 @@ exports.deleteMessage = async function (msg, response, wait) {
     await basics.sleep(wait);
     delme.delete({});
 }
+exports.deleteBoth = async function (msg, response, wait) {
+    let delme = await msg.reply(response);
+    await basics.sleep(wait);
+    delme.delete({});
+    msg.delete({});
+}
