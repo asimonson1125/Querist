@@ -50,27 +50,8 @@ client.on('messageCreate', msg => {
 
 
     if (msg.author.id == bot_owner_id) { //if bot owner is the author
-        if (msg.content.substring(0, 7) == "^track ") {
-            try {
-                DB.addTracker(msg);
-            } catch (e) {
-                msg.reply(`error while adding tracker: ${e}`);
-            }
-        }
-
-        if (msg.content == "^print") {
-            DB.printAll(msg)
-        }
+        //no test functions at this time
     }
-
-    if (msg.content.substring(0, 11) == "^rolereact ") {
-        roleHandler.roleReact(msg);
-    }
-    if (msg.content.substring(0, 3) == "^p ") {
-        msg.react(msg.content.substring(3).substring(1));
-        console.log(msg.content);
-    }
-
 
     if (msg.content.startsWith('^emojiTrack ')) { // syntax: ^emojiTrack +:100:+ "role100" +:one:+ "role1" --msg msgID
         let msgStart = msg.content.indexOf('--msg ');
@@ -85,15 +66,14 @@ client.on('messageCreate', msg => {
             mutated = mutated.substring(mutated.indexOf('+') + 1);
         }
         let msgID = (msg.content.substring(msg.content.indexOf("--msg ") + 6));
-        try{
+        try {
             parseInt(msgID);
         }
-        catch(e){
+        catch (e) {
             msg.author.send('Error: Message id recieved is not an integer')
         }
         try {
-            DB.addTracker(msg, msgID, commands);
-            unnecessaryFunction(msg, msgID, trackedMessage, commands);
+            initCollector(msg, msgID, trackedMessage, commands);
         } catch (e) {
             msg.author.send(`error: ${e}`);
         }
@@ -103,15 +83,21 @@ client.on('messageCreate', msg => {
 
 });
 
-async function unnecessaryFunction(msg, msgID, trackedMessage, commands) {
-    trackedMessage = await msg.channel.messages.fetch(msgID);
-    let out = `For message ${msgID}:\n`;
-    for (let i = 0; i < commands[0].length; i++) {
-        out += commands[0][i] + " assigns " + commands[1][i] + "\n";
-        trackedMessage.react(commands[0][i]);
+async function initCollector(msg, msgID, trackedMessage, commands) {
+    try {
+        trackedMessage = await msg.channel.messages.fetch(msgID);
+
+        let out = `For message ${msgID}:\n`;
+        for (let i = 0; i < commands[0].length; i++) {
+            out += commands[0][i] + " assigns " + commands[1][i] + "\n";
+            trackedMessage.react(commands[0][i]);
+        }
+        DB.addTracker(msg, msgID, commands);
+        roleHandler.makeEmojiCollector(trackedMessage, commands);
+        msg.author.send(out);
+    } catch (e) {
+        msg.author.send(`Error while creating emoji collector: ${e}`);
     }
-    roleHandler.makeEmojiCollector(trackedMessage, commands);
-    msg.author.send(out);
 }
 
 
