@@ -1,6 +1,7 @@
 const Sequelize = require('sequelize');
 const auth = require('./auth.json');
 const basics = require('./basics.js');
+const roleHandler = require('./roleHandler');
 
 
 let trackedPosts;
@@ -15,34 +16,55 @@ exports.DB_init = function () {
     });
 
     trackedPosts = sequelize.define('trackedPosts', {
-        author: Sequelize.INTEGER,
-        channelId: Sequelize.INTEGER,
-        postId: Sequelize.INTEGER,
-        content: Sequelize.STRING
+        GuildID: Sequelize.STRING,
+        MsgChannel: Sequelize.STRING,
+        MsgID: Sequelize.STRING,
+        EmojiString: Sequelize.STRING,
+        RoleString: Sequelize.STRING
     });
 }
 
-exports.sync = function (){
-    trackedPosts.sync();
+exports.sync = async function (client){
+    let msg, msgGuild, channel;
+    let commands = [[],[]];
+    let mutatedEmojiStr, mutatedRoleStr;
+    await trackedPosts.sync();
+    DBread = await trackedPosts.findAll();
+    for(let i = 0; i < DBread.length; i++){
+        mutatedEmojiStr = DBread[i].get('EmojiString');
+        mutatedRoleStr = DBread[i].get('RoleString');
+        while(mutatedEmojiStr.indexOf("+") != -1){
+            commands[0].push(mutatedEmojiStr.substring(0,mutatedEmojiStr.indexOf('+')));
+            mutatedEmojiStr = mutatedEmojiStr.substring(mutatedEmojiStr.indexOf('+')+1);
+        }
+        while(mutatedRoleStr.indexOf("+") != -1){
+            commands[1].push(mutatedRoleStr.substring(0,mutatedRoleStr.indexOf('+')));
+            mutatedRoleStr = mutatedRoleStr.substring(mutatedRoleStr.indexOf('+')+1);
+        }
+        
+        msgGuild = await client.guilds.cache.get(DBread[i].get('GuildID'))
+        msgchannel = await msgGuild.channels.cache.get(DBread[i].get('MsgChannel'));
+        msg = await msgchannel.messages.fetch(DBread[i].get('MsgID'));
+        
+        roleHandler.makeEmojiCollector(msg,commands);
+    }
 }
 
-exports.addTracker = async function (msg){
+exports.addTracker = async function (msg, msgId, commands){
+    let emojiString = "";
+    let roleString = "";
+    commands[0].forEach(function(x){ // convery array to string to store in sequelize
+        emojiString += x + "+";
+    });
+    commands[1].forEach(function(x){ // convery array to string to store in sequelize
+        roleString += x + "+";
+    });
     let tracker = await trackedPosts.create({
-        author: msg.author.id,
-        channelId: msg.channelId,
-        postId: msg.id,
-        content: msg.content
+        GuildID: msg.guildId.toString(),
+        MsgChannel: msg.channelId.toString(),
+        MsgID: msgId,
+        EmojiString: emojiString,
+        RoleString: roleString
     });
-    basics.deleteMessage(msg, `tracker created.`, 5000);
-    let ver = await trackedPosts.findOne({ where: { postId: msg.id } });
-    basics.deleteMessage(msg,`verification: tracking post ${ver.get('postId')}, which said "${ver.get('content')}".`,10000)
-}
-
-exports.printAll = async function(msg){
-    let allContent = await trackedPosts.findAll({attributes: ['content']});
-    let response = await msg.reply("DM'ing you all post content tracked on this host...");
-    allContent.forEach(function(x){
-        msg.author.send(x.get('content'));
-    });
-    response.edit(response.content + " Done!");
+    //basics.deleteMessage(msg, `tracker created.`, 5000);
 }

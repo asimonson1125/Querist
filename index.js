@@ -11,22 +11,13 @@ const bot_owner_id = auth.ownerID;
 
 client.on('ready', () => {
     console.log(`Logged in as ${client.user.tag}!`);
-    DB.sync();
+    DB.sync(client);
     client.user.setActivity('your messages with horror', { type: 'WATCHING' });
     client.user.setStatus('idle');
 });
 
 client.on('messageCreate', msg => {
     if (msg.author.bot || !msg.guild) return;
-
-    const filter = (reaction, user) => (reaction.emoji.name === '1️⃣' || reaction.emoji.name === '4️⃣' || reaction.emoji.name === '6️⃣') && !user.bot;
-
-    
-
-
-
-
-
 
     if (msg.content.substring(0, 11) == "^impossible") {
         msg.channel.send("​​​​");
@@ -81,43 +72,48 @@ client.on('messageCreate', msg => {
     }
 
 
-
-
-
-
-    if (msg.content.substring(0, 3) == "^r ") {
-        /*try {
-            DB.addTracker(msg);
+    if (msg.content.startsWith('^emojiTrack ')) { // syntax: ^emojiTrack +:100:+ "role100" +:one:+ "role1" --msg msgID
+        let msgStart = msg.content.indexOf('--msg ');
+        let mutated = msg.content.substring(11, msgStart);
+        let commands = [[], []];
+        let trackedMessage;
+        mutated = mutated.substring(mutated.indexOf('+') + 1);
+        while (mutated.indexOf('+') != -1) {
+            commands[0].push(mutated.substring(0, mutated.indexOf('+')).replace(/\s/g, ''));
+            mutated = mutated.substring(mutated.indexOf('"') + 1);
+            commands[1].push(mutated.substring(0, mutated.indexOf('"')));
+            mutated = mutated.substring(mutated.indexOf('+') + 1);
+        }
+        let msgID = (msg.content.substring(msg.content.indexOf("--msg ") + 6));
+        try{
+            parseInt(msgID);
+        }
+        catch(e){
+            msg.author.send('Error: Message id recieved is not an integer')
+        }
+        try {
+            DB.addTracker(msg, msgID, commands);
+            unnecessaryFunction(msg, msgID, trackedMessage, commands);
         } catch (e) {
-            msg.reply(`error while adding tracker: ${e}`);
-        }*/
-        msg.react('1️⃣');
-        msg.react('4️⃣');
-        msg.react('6️⃣');
-        const collector = msg.createReactionCollector({filter});
-        collector.on('collect', (reaction, user) => {
-            switch (reaction.emoji.name){
-                case '1️⃣':
-                    roleHandler.addTo(msg,"Section 1",user);
-                    break;
-                case '4️⃣':
-                    roleHandler.addTo(msg,"Section 4",user);
-                    break;
-                case '6️⃣':
-                    roleHandler.addTo(msg,"Section 6",user);
-                    break;
-            }
-            reaction.users.remove(user);
-        });
-
-        collector.on('end', collected => {
-            console.log(`Collected ${collected.size} items`);
-        });
-
+            msg.author.send(`error: ${e}`);
+        }
+        msg.delete({});
     }
 
 
 });
+
+async function unnecessaryFunction(msg, msgID, trackedMessage, commands) {
+    trackedMessage = await msg.channel.messages.fetch(msgID);
+    let out = `For message ${msgID}:\n`;
+    for (let i = 0; i < commands[0].length; i++) {
+        out += commands[0][i] + " assigns " + commands[1][i] + "\n";
+        trackedMessage.react(commands[0][i]);
+    }
+    roleHandler.makeEmojiCollector(trackedMessage, commands);
+    msg.author.send(out);
+}
+
 
 client.login(auth.token);
 // https://discord.com/api/oauth2/authorize?client_id=879861591670149150&permissions=8&scope=bot
