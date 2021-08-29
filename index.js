@@ -3,7 +3,6 @@ const client = new Client({ intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_
 const auth = require('./auth.json');
 const roleHandler = require('./roleHandler.js');
 const basics = require('./basics.js');
-const editHandler = require('./editHandler');
 const DB = require('./database.js');
 
 DB.DB_init();
@@ -53,11 +52,10 @@ client.on('messageCreate', msg => {
         //no test functions at this time
     }
 
-    if (msg.content.startsWith('^emojiTrack ')) { // syntax: ^emojiTrack +:100:+ "role100" +:one:+ "role1" --msg msgID
+    if (msg.content.startsWith('^emojiTrack ')) { // syntax: ^emojiTrack +:100:+ "role100" +:one:+ "role1" --msg msgLink
         let msgStart = msg.content.indexOf('--msg ');
         let mutated = msg.content.substring(11, msgStart);
         let commands = [[], []];
-        let trackedMessage;
         mutated = mutated.substring(mutated.indexOf('+') + 1);
         while (mutated.indexOf('+') != -1) {
             commands[0].push(mutated.substring(0, mutated.indexOf('+')).replace(/\s/g, ''));
@@ -65,7 +63,16 @@ client.on('messageCreate', msg => {
             commands[1].push(mutated.substring(0, mutated.indexOf('"')));
             mutated = mutated.substring(mutated.indexOf('+') + 1);
         }
-        let msgID = (msg.content.substring(msg.content.indexOf("--msg ") + 6));
+        let msgID, chanID, guildID;
+        let IDs = (msg.content.substring(msg.content.indexOf("--msg ") + 6));
+        if(IDs.indexOf("https://discord.com/channels/") != -1){
+            IDs = IDs.substring(IDs.indexOf("https://discord.com/channels/") +29);
+            guildID = IDs.substring(0,IDs.indexOf('/'));
+            IDs = IDs.substring(IDs.indexOf('/')+1);
+            chanID = IDs.substring(0,IDs.indexOf('/'));
+            IDs = IDs.substring(IDs.indexOf('/')+1);
+            msgID = IDs;
+        }
         try {
             parseInt(msgID);
         }
@@ -73,7 +80,7 @@ client.on('messageCreate', msg => {
             msg.author.send('Error: Message id recieved is not an integer')
         }
         try {
-            initCollector(msg, msgID, trackedMessage, commands);
+            initCollector(msg, msgID, chanID, guildID, commands);
         } catch (e) {
             msg.author.send(`error: ${e}`);
         }
@@ -83,16 +90,17 @@ client.on('messageCreate', msg => {
 
 });
 
-async function initCollector(msg, msgID, trackedMessage, commands) {
+async function initCollector(msg, msgID, chanID, guildID, commands) {
     try {
-        trackedMessage = await msg.channel.messages.fetch(msgID);
-
-        let out = `For message ${msgID}:\n`;
+        let msgGuild = await client.guilds.cache.get(guildID);
+        let msgChannel = await msgGuild.channels.cache.get(chanID);
+        let trackedMessage = await msgChannel.messages.fetch(msgID);
+        let out = `For message ${msgID}, which is in channel #${msgChannel.name} of '${msgGuild.name}':\n`;
         for (let i = 0; i < commands[0].length; i++) {
             out += commands[0][i] + " assigns " + commands[1][i] + "\n";
             trackedMessage.react(commands[0][i]);
         }
-        DB.addTracker(msg, msgID, commands);
+        DB.addTracker(msgID, chanID, guildID, commands);
         roleHandler.makeEmojiCollector(trackedMessage, commands);
         msg.author.send(out);
     } catch (e) {

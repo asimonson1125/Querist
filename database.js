@@ -42,7 +42,7 @@ exports.sync = async function (client) {
             mutatedRoleStr = mutatedRoleStr.substring(mutatedRoleStr.indexOf('+') + 1);
         }
 
-        msgGuild = await client.guilds.cache.get(DBread[i].get('GuildID'))
+        msgGuild = await client.guilds.cache.get(DBread[i].get('GuildID'));
         msgchannel = await msgGuild.channels.cache.get(DBread[i].get('MsgChannel'));
         try {
             msg = await msgchannel.messages.fetch(DBread[i].get('MsgID'));
@@ -54,7 +54,7 @@ exports.sync = async function (client) {
     }
 }
 
-exports.addTracker = async function (msg, msgId, commands) {
+exports.addTracker = async function (msgID, chanID, guildID, commands) {
     let emojiString = "";
     let roleString = "";
     commands[0].forEach(function (x) { // convery array to string to store in sequelize
@@ -64,11 +64,10 @@ exports.addTracker = async function (msg, msgId, commands) {
         roleString += x + "+";
     });
     let tracker = await trackedPosts.create({
-        GuildID: msg.guildId.toString(),
-        MsgChannel: msg.channelId.toString(),
-        MsgID: msgId,
+        GuildID: guildID,
+        MsgChannel: chanID,
+        MsgID: msgID,
         EmojiString: emojiString,
         RoleString: roleString
     });
-    //basics.deleteMessage(msg, `tracker created.`, 5000);
 }
