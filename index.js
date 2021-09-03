@@ -77,12 +77,12 @@ client.on('messageCreate', msg => {
             parseInt(msgID);
         }
         catch (e) {
-            msg.author.send('Error: Message id recieved is not an integer')
+            basics.deleteMessage(msg,'Error: Message id recieved is not an integer', 5000)
         }
         try {
             initCollector(msg, msgID, chanID, guildID, commands);
         } catch (e) {
-            msg.author.send(`error: ${e}`);
+            basics.deleteMessage(msg,`error: ${e}`, 5000);
         }
         msg.delete({});
     }
@@ -102,9 +102,9 @@ async function initCollector(msg, msgID, chanID, guildID, commands) {
         }
         DB.addTracker(msgID, chanID, guildID, commands);
         roleHandler.makeEmojiCollector(trackedMessage, commands);
-        msg.author.send(out);
+        basics.deleteMessage(msg,out,5000);
     } catch (e) {
-        msg.author.send(`Error while creating emoji collector: ${e}`);
+        basics.deleteMessage(msg,`Error while creating emoji collector: ${e}`,5000);
     }
 }
 

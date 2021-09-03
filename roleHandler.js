@@ -8,14 +8,14 @@ exports.add = async function (msg, id) {
             await msg.member.roles.add(role);
         }
         catch (e) {
-            msg.author.send(`Error while assigning role '${id}'`)
+            basics.dmHandler(msg, `Error while assigning role '${id}'`, 5000)
             msg.delete({});
             return;
         }
-        msg.author.send("You now have the role '" + role.name + "'")
+        basics.dmHandler(msg,"You now have the role '" + role.name + "'", 5000)
     }
     else {
-        msg.author.send(`Role '${id}' not found.`);
+        basics.dmHandler(msg`Role '${id}' not found.`, 5000);
     }
     msg.delete({});
 }

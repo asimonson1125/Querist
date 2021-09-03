@@ -15,3 +15,12 @@ exports.deleteBoth = async function (msg, response, wait) {
     delme.delete({});
     msg.delete({});
 }
+
+exports.dmHandler = function (msg, response, time){
+    try{
+        msg.author.send(response);
+    }
+    catch(e){
+        basics.deleteMessage(msg, response, time);
+    }
+}
