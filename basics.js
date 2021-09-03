@@ -18,10 +18,10 @@ exports.deleteBoth = async function (msg, response, wait) {
 
 exports.dmHandler = async function (msg, response, time){
     try{
-        msg.author.send(response);
+        msg.author.send(response).catch(() => console.log("I hate myself")).then(variable => msg.delete({}));
     }
     catch(e){
-        basics.deleteMessage(msg, response, time);
+        basics.deleteBoth(msg, response, time);
     }
 }
 

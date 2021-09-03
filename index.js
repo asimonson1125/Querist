@@ -82,9 +82,8 @@ client.on('messageCreate', msg => {
         try {
             initCollector(msg, msgID, chanID, guildID, commands);
         } catch (e) {
-            basics.deleteMessage(msg,`error: ${e}`, 5000);
+            basics.deleteBoth(msg,`error: ${e}`, 5000);
         }
-        msg.delete({});
     }
 
 
@@ -104,7 +103,7 @@ async function initCollector(msg, msgID, chanID, guildID, commands) {
         roleHandler.makeEmojiCollector(trackedMessage, commands);
         basics.dmHandler(msg,out,5000);
     } catch (e) {
-        basics.deleteMessage(msg,`Error while creating emoji collector: ${e}`,5000);
+        basics.deleteBoth(msg,`Error while creating emoji collector: ${e}`,5000);
     }
 }
 
