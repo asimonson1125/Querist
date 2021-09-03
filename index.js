@@ -95,14 +95,14 @@ async function initCollector(msg, msgID, chanID, guildID, commands) {
         let msgGuild = await client.guilds.cache.get(guildID);
         let msgChannel = await msgGuild.channels.cache.get(chanID);
         let trackedMessage = await msgChannel.messages.fetch(msgID);
-        let out = `For message ${msgID}, which is in channel #${msgChannel.name} of '${msgGuild.name}':\n`;
+        let out = `For message ${msgID}, which is in channel '${msgChannel.name}' of '${msgGuild.name}':`;
         for (let i = 0; i < commands[0].length; i++) {
-            out += commands[0][i] + " assigns " + commands[1][i] + "\n";
+            out += "\n" + commands[0][i] + " assigns " + commands[1][i];
             trackedMessage.react(commands[0][i]);
         }
         DB.addTracker(msgID, chanID, guildID, commands);
         roleHandler.makeEmojiCollector(trackedMessage, commands);
-        basics.deleteMessage(msg,out,5000);
+        basics.dmHandler(msg,out,5000);
     } catch (e) {
         basics.deleteMessage(msg,`Error while creating emoji collector: ${e}`,5000);
     }

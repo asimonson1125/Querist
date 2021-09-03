@@ -16,9 +16,9 @@ exports.deleteBoth = async function (msg, response, wait) {
     msg.delete({});
 }
 
-exports.dmHandler = function (msg, response, time){
+exports.dmHandler = async function (msg, response, time){
     try{
-        msg.author.send(response);
+        await msg.author.send(response);
     }
     catch(e){
         basics.deleteMessage(msg, response, time);
