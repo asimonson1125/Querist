@@ -28,21 +28,21 @@ exports.addTo = async function (msg, id, target) {
         try {
             if (!gTarget.roles.cache.find(r => r == role)) {
                 await gTarget.roles.add(role);
-                gTarget.send("You now have the role '" + role.name + "'")
+                basics.silentDM(gTarget, "You now have the role '" + role.name + "'")
             }
             else {
                 await gTarget.roles.remove(role);
-                gTarget.send("You no longer have the role '" + role.name + "'")
+                basics.silentDM(gTarget, "You no longer have the role '" + role.name + "'")
             }
 
         }
         catch (e) {
-            gTarget.send(`Error while assigning role '${id}': ${e}`)
+            basics.silentDM(gTarget, `Error while assigning role '${id}': ${e}`)
             return;
         }
     }
     else {
-        gTarget.send(`Role '${id}' not found.`);
+        basics.silentDM(gTarget, `Role '${id}' not found.`);
     }
 }
 
